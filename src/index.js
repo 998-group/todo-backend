@@ -3,6 +3,7 @@ const cors = require("cors");
 const PORT = 5000;
 
 const app = express();
+app.use(express.json());
 app.use(cors());
 
 const users = [];
@@ -16,25 +17,20 @@ app.post("/api/v1/login", (req, res) => {
 });
 
 app.post("/api/v1/register", (req, res) => {
-  const { username, password, phone } = req.body;
-
-  if (!username || !password || !phone) {
+  const { firstName, lastName, password, email } = req.body;
+  if (!firstName || !lastName || !password || !email) {
     return res.status(400).json({ message: "Please provide all fields" });
   }
 
-  const existingUser = users.find(
-    (user) => user.username === username || user.phone === phone
-  );
+  const existingUser = users.find((user) => user.email === email);
 
   if (existingUser) {
-    return res
-      .status(400)
-      .json({ message: "Username or phone already exists" });
+    return res.status(400).json({ message: "Email already exists" });
   }
 
   res.status(201).json({
     message: "User registered successfully",
-    user: { username, password, phone },
+    user: { firstName, lastName, password, email },
   });
 });
 
