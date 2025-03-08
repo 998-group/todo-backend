@@ -7,29 +7,21 @@ app.use(express.json());
 app.use(cors());
 
 const users = [
-  {email: "madalievsardor33@gmail.com", password: "admin"}
+  { id: 1, firstName: "Doni", lastName: "Qochqorova", phone: "1234567890", password: "password123", email: ""},
 ];
 
-app.get("/api/v1/users", (req, res) => {
-  res.json(users);
-});
-
 app.post("/api/v1/login", (req, res) => {
-  const {email, password} = req.body;
-  if(!email || !password) {
-    return res.status(400).json({message: "Please provide all fields"})
+  const { phone, password } = req.body; 
+  const user = users.find((user) => user.phone === phone && user.password === password);
+
+  if (!user) {
+    return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  const existingUser = users.find((user) => user.email === email && user.password === password);
-
-  if(!existingUser) {
-    return res.status(400).json({message: "Email or password not defined"})
-  }
-
-  res.status(201).json({
-    message: "User loginned successfully",
-    user: {email, password}
-  })
+  res.status(200).json({
+    message: "Login successful",
+    user: { id: user.id, firstName: user.firstName, lastName: user.lastName, phone: user.phone },
+  });
 });
 
 app.post("/api/v1/register", (req, res) => {
@@ -50,13 +42,10 @@ app.post("/api/v1/register", (req, res) => {
   });
 });
 
+app.get("/api/v1/users", (req, res) => {
+  res.json(users);
+});
+
 app.listen(PORT, () => {
-  console.log(
-    `================================================================`
-  );
   console.log(`Server is running on port ${PORT}`);
-  console.log(`Server created by Bekzod Mirzaaliyev`);
-  console.log(
-    `================================================================`
-  );
 });
