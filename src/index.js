@@ -3,7 +3,11 @@ const cors = require("cors");
 const PORT = 5000;
 
 const app = express();
+<<<<<<< HEAD
 app.use(express.json());
+=======
+app.use(express.json())
+>>>>>>> b34e337a853f7d30bc11988f978b3cefc695f88d
 app.use(cors());
 
 const users = [
@@ -15,6 +19,7 @@ app.get("/api/v1/users", (req, res) => {
 });
 
 app.post("/api/v1/login", (req, res) => {
+<<<<<<< HEAD
   const {email, password} = req.body;
   if(!email || !password) {
     return res.status(400).json({message: "Please provide all fields"})
@@ -30,6 +35,25 @@ app.post("/api/v1/login", (req, res) => {
     message: "User loginned successfully",
     user: {email, password}
   })
+=======
+  const { phone, password} = req.body;
+
+  if(!phone || !password) {
+    return res.status(400).json({ message: "Please provide all fields"});
+  }
+  const existingUser = users.find(
+    (user) => user.phone === phone && user.password === password
+  );
+
+  if(!existingUser) {
+    return res
+    .status(400)
+    .json({ message: "Incorrect phone or password"});
+  }
+  res.status(200).json({ message: "Login successfully",
+    user: { username: existingUser.username, phone: existingUser.phone}
+  });
+>>>>>>> b34e337a853f7d30bc11988f978b3cefc695f88d
 });
 
 app.post("/api/v1/register", (req, res) => {
