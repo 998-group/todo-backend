@@ -10,20 +10,20 @@ app.use(cors());
 const users = [
   {
     id: 1,
-    firstName: "Doni",
-    lastName: "Qochqorova",
-    phone: "1234567890",
-    password: "password123",
-    email: "",
+    firstName: "Sardor",
+    lastName: "Madaliev",
+    phone: "901232323",
+    password: "admin",
+    email: "madalievsardor33@gmail.com",
   },
 ];
 
 const publication = [];
 
 app.post("/api/v1/login", (req, res) => {
-  const { phone, password } = req.body;
+  const { email, password } = req.body;
   const user = users.find(
-    (user) => user.phone === phone && user.password === password
+    (user) => user.email === email && user.password === password
   );
 
   if (!user) {
@@ -36,7 +36,7 @@ app.post("/api/v1/login", (req, res) => {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
-      phone: user.phone,
+      email: user.email,
     },
   });
 });
