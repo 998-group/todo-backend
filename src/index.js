@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { default: GeneratorID } = require("./utils/GeneratorID");
+// const { default: GeneratorID } = require("./utils/GeneratorID");
 const PORT = 5000;
 
 const app = express();
@@ -51,11 +51,21 @@ app.post("/api/v1/register", (req, res) => {
 
   if (existingUser) {
     return res.status(400).json({ message: "Email already exists" });
-  }
+  } 
 
+  const newUser = {
+    // id: GeneratorID(),
+    firstName,
+    lastName,
+    phone: "",
+    password,
+    email,
+    date: new Date().toISOString()
+  }
+  users.push(newUser);
   res.status(201).json({
     message: "User registered successfully",
-    user: { firstName, lastName, password, email },
+    user: newUser
   });
 });
 
