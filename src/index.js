@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { default: GeneratorID } = require("./utils/GeneratorID");
+const GeneratorID = require("./utils/GeneratorID"); // .default olib tashlandi
 const PORT = 5000;
 
 const app = express();
@@ -14,12 +14,13 @@ const users = [
     lastName: "Qochqorova",
     phone: "1234567890",
     password: "password123",
-    email: "",
   },
 ];
 
 const publication = [];
+const addStories = [];
 
+// LOGIN ENDPOINT
 app.post("/api/v1/login", (req, res) => {
   const { phone, password } = req.body;
   const user = users.find(
@@ -41,6 +42,7 @@ app.post("/api/v1/login", (req, res) => {
   });
 });
 
+// REGISTER ENDPOINT
 app.post("/api/v1/register", (req, res) => {
   const { firstName, lastName, password, email } = req.body;
   if (!firstName || !lastName || !password || !email) {
@@ -48,35 +50,45 @@ app.post("/api/v1/register", (req, res) => {
   }
 
   const existingUser = users.find((user) => user.email === email);
-
   if (existingUser) {
     return res.status(400).json({ message: "Email already exists" });
   }
 
+  const newUser = {
+    id: GeneratorID(),
+    firstName,
+    lastName,
+    password,
+    email,
+  };
+
+  users.push(newUser);
+
   res.status(201).json({
     message: "User registered successfully",
-    user: { firstName, lastName, password, email },
+    user: newUser,
   });
 });
 
+// GET USERS
 app.get("/api/v1/users", (req, res) => {
   res.json(users);
 });
 
-// создать публикацию
+// CREATE PUBLICATION
 app.post("/api/v1/publications", (req, res) => {
   const { user, posts, description } = req.body;
 
   if (!user || !posts || !description) {
-    return res.status(400).json({ message: "you must fill in the all fields" });
+    return res.status(400).json({ message: "All fields are required" });
   }
 
   const post = {
     id: GeneratorID(),
     author: user,
     posts,
-    like,
-    comments,
+    like: [],
+    comments: [],
     createdAt: new Date().toISOString(),
   };
 
@@ -84,29 +96,54 @@ app.post("/api/v1/publications", (req, res) => {
   res.status(201).json({ message: "Post created successfully", post });
 });
 
-// Все публикации
+// GET ALL PUBLICATIONS
 app.get("/api/v1/publications", (req, res) => {
   res.json({ publication });
 });
 
-// лайкать публикацию
-
-// http://localhost:8000/api/v1/publications/47832075820752483/like
-
+// LIKE PUBLICATION
 app.put("/api/v1/publications/:id/like", (req, res) => {
   const { id } = req.params;
   const { user } = req.body;
-  const postIndex = publication.find((post) => post.id === parseInt(id));
 
-  if (!postIndex) {
+  const post = publication.find((post) => post.id === id);
+  if (!post) {
     return res.status(404).json({ message: "Post not found" });
   }
 
-  postIndex.like.push(user);
+  if (!post.like.includes(user)) {
+    post.like.push(user);
+  }
 
-  res
-    .status(200)
-    .json({ message: "Post liked successfully", post: publication[postIndex] });
+  res.status(200).json({ message: "Post liked successfully", post });
+});
+
+// ADD STORY
+app.post("/api/v1/addStories", (req, res) => {
+  const { title, content, addPhoto, addVideo } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ message: "Title and content are required" });
+  }
+
+  const story = {
+    id: GeneratorID(),
+    title,
+    content,
+    addPhoto: addPhoto || "",
+    addVideo: addVideo || "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  addStories.push(story);
+
+  res.status(201).json({ message: "Story added successfully", story });
+});
+
+// GET ALL STORIES
+app.get("/api/v1/addStories", (req, res) => {
+  res.status(200).json({ stories: addStories });
 });
 
 app.listen(PORT, () => {
