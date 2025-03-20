@@ -1,11 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-<<<<<<< HEAD
-const { default: GeneratorID } = require("./utils/GeneratorID");
-const connectDB = require("./config/db");
-=======
 const GeneratorID = require("./utils/GeneratorID"); // .default olib tashlandi
->>>>>>> 2bda2f702976e587229f4baccef078fa8240de50
 const PORT = 5000;
 
 const app = express();
@@ -24,12 +19,7 @@ const users = [
 const publication = [];
 const addStories = [];
 
-<<<<<<< HEAD
-connectDB()
-
-=======
 // LOGIN ENDPOINT
->>>>>>> 2bda2f702976e587229f4baccef078fa8240de50
 app.post("/api/v1/login", (req, res) => {
   const { phone, password } = req.body;
   const user = users.find(
@@ -51,9 +41,6 @@ app.post("/api/v1/login", (req, res) => {
   });
 });
 
-<<<<<<< HEAD
-
-=======
 // REGISTER ENDPOINT
 app.post("/api/v1/register", (req, res) => {
   const { firstName, lastName, password, email } = req.body;
@@ -81,7 +68,6 @@ app.post("/api/v1/register", (req, res) => {
     user: newUser,
   });
 });
->>>>>>> 2bda2f702976e587229f4baccef078fa8240de50
 
 // GET USERS
 app.get("/api/v1/users", (req, res) => {
@@ -109,30 +95,7 @@ app.post("/api/v1/publications", (req, res) => {
   res.status(201).json({ message: "Post created successfully", post });
 });
 
-<<<<<<< HEAD
-// view all story
-app.get('/api/v1/stories', (req, res) => {
-
-})
-
-// view single story
-app.get('/api/v1/stories/:id', (req, res) => {
-
-})
-
-// create a new story
-app.post('/api/v1/stories', (req, res) => {
-
-})
-
-app.delete('/api/v1/stories/:id', (req, res) => {
-
-})
-
-// Все публикации
-=======
 // GET ALL PUBLICATIONS
->>>>>>> 2bda2f702976e587229f4baccef078fa8240de50
 app.get("/api/v1/publications", (req, res) => {
   res.json({ publication });
 });
