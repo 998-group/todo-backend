@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { default: GeneratorID } = require("./utils/GeneratorID");
+const connectDB = require("./config/db");
 const PORT = 5000;
 
 const app = express();
@@ -17,8 +18,9 @@ const users = [
     email: "",
   },
 ];
-
 const publication = [];
+
+connectDB()
 
 app.post("/api/v1/login", (req, res) => {
   const { phone, password } = req.body;
@@ -41,23 +43,7 @@ app.post("/api/v1/login", (req, res) => {
   });
 });
 
-app.post("/api/v1/register", (req, res) => {
-  const { firstName, lastName, password, email } = req.body;
-  if (!firstName || !lastName || !password || !email) {
-    return res.status(400).json({ message: "Please provide all fields" });
-  }
 
-  const existingUser = users.find((user) => user.email === email);
-
-  if (existingUser) {
-    return res.status(400).json({ message: "Email already exists" });
-  }
-
-  res.status(201).json({
-    message: "User registered successfully",
-    user: { firstName, lastName, password, email },
-  });
-});
 
 app.get("/api/v1/users", (req, res) => {
   res.json(users);
@@ -83,6 +69,25 @@ app.post("/api/v1/publications", (req, res) => {
   publication.unshift(post);
   res.status(201).json({ message: "Post created successfully", post });
 });
+
+// view all story
+app.get('/api/v1/stories', (req, res) => {
+
+})
+
+// view single story
+app.get('/api/v1/stories/:id', (req, res) => {
+
+})
+
+// create a new story
+app.post('/api/v1/stories', (req, res) => {
+
+})
+
+app.delete('/api/v1/stories/:id', (req, res) => {
+
+})
 
 // Все публикации
 app.get("/api/v1/publications", (req, res) => {
