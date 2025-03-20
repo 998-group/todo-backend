@@ -12,9 +12,14 @@ const userSchema = new mongoose.Schema({
   },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
-  avatar: { type: String, required: false, default: "https://img.freepik.com/free-vector/contact-icon-3d-vector-illustration-blue-button-with-user-profile-symbol-networking-sites-apps-cartoon-style-isolated-white-background-online-communication-digital-marketing-concept_778687-1715.jpg"},
+  avatar: {
+    type: String,
+    required: false,
+    default:
+      "https://img.freepik.com/free-vector/contact-icon-3d-vector-illustration-blue-button-with-user-profile-symbol-networking-sites-apps-cartoon-style-isolated-white-background-online-communication-digital-marketing-concept_778687-1715.jpg",
+  },
   bio: { type: String, required: false },
-  phone: { type: String, required: true, unique: true},
+  phone: { type: String, required: true, unique: true },
 });
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("998User", userSchema);
