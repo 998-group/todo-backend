@@ -6,24 +6,32 @@ const router = express.Router();
 
 // Регистрация
 router.post("/register", async (req, res) => {
-  const { firstName, lastName, password, phone } = req.body;
+  const { firstName, lastName, password, phone, username } = req.body;
 
-  if (!firstName || !lastName || !password || !phone) {
+  console.log("Received data:", req.body); // Добавьте это, чтобы проверить полученные данные
+
+  if (!firstName || !lastName || !password || !phone || !username) {
     return res.status(400).json({ error: "All fields are required." });
   }
 
   try {
     const existingUser = await User.findOne({ phone });
     if (existingUser) {
-      return res.status(400).json({ error: "User with this phone number already exists." });
+      return res
+        .status(400)
+        .json({ error: "User with this phone number already exists." });
     }
 
-    // Хешируем пароль перед сохранением
     const hashedPassword = await bcrypt.hash(password, 10);
-  
-    //3151516 = ih249 oi;jr4o rv32904ui9834u32894y327840
 
-    const newUser = new User({ firstName, lastName, password: hashedPassword, phone });
+    const newUser = new User({
+      firstName,
+      lastName,
+      password: hashedPassword,
+      phone,
+      username, // Убедитесь, что передаёте username
+    });
+
     await newUser.save();
 
     res.status(201).json({ message: "User registered successfully.", newUser });

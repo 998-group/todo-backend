@@ -20,28 +20,19 @@ const userSchema = new mongoose.Schema({
   },
   bio: { type: String, required: false },
   phone: { type: String, required: true, unique: true },
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    minLength: 6, // Bekzod
-    validate: {
-      validator: (value) => /^[a-zA-Z0-9]+$/.test(value),
-      message: "Username must only contain alphanumeric characters.",
-    },
-  },
+  username: { type: String, required: true, unique: true }, // <-- Должно быть обязательным
   followers: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "998User",
-    }
+    },
   ],
   following: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "998User",
-    }
-  ]
+    },
+  ],
 });
 
 module.exports = mongoose.model("998User", userSchema);
