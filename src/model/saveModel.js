@@ -1,17 +1,9 @@
 const mongoose = require("mongoose");
 
-// Define the Save schema
-const saveModel = new mongoose.Schema({
-  author: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "998User", 
-    required: true 
-  },
-  save: { 
-    type: Number, 
-    default: 0 
-  }
-}, { timestamps: true }); // Adds createdAt and updatedAt timestamps
+const saveSchema = new mongoose.Schema({
+  publication: { type: mongoose.Schema.Types.ObjectId, ref: "998publication", required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "998user", required: true },
+  createdAt: { type: Date, default: Date.now },
+});
 
-
-module.exports = mongoose.model("Save", saveModel);;
+module.exports = mongoose.model("998save", saveSchema);

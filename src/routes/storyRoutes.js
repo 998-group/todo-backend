@@ -20,7 +20,7 @@ router.post("/story", async (req, res) => {
 
 // barcha storylarni ko'rish
 router.get("/story", async (req, res) => {
-  const { user } = req.body;
+  const { user } = req.query; // или req.headers["user"]
 
   if (!user) {
     return res.status(401).json({ message: "You are not authorized" });
@@ -36,7 +36,6 @@ router.get("/story", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch stories." });
   }
 });
-
 
 // ID bo'yicha active yoki inactive qilish
 router.put("/story/:id", async (req, res) => {
@@ -84,24 +83,23 @@ router.delete("/story/:id", async (req, res) => {
 // ID bo'yicha storyni tahrirlash
 
 router.patch("/story/:id", async (req, res) => {
-  const { id } = req.params;
-  const { stories } = req.body;
-
-  if (!id || stories.length === 0) {
-    return res.status(400).json({ error: "Invalid story ID or stories." });
-  }
-
   try {
-    const story = await UserStory.findByIdAndUpdate(
-      id,
-      { stories },
-      { new: true }
-    );
+    const { id } = req.params;
+    const { stories } = req.body;
+
+    if (!id || !stories || stories.length === 0) {
+      return res.status(400).json({ error: "Invalid story ID or stories." });
+    }
+
+    const story = await UserStory.findByIdAndUpdate(id, { stories }, { new: true });
+
     if (!story) {
       return res.status(404).json({ error: "Story not found." });
     }
+
     res.json({ message: "Story updated successfully.", story });
   } catch (error) {
+    console.error("Error updating story:", error);
     res.status(500).json({ error: "Failed to update story." });
   }
 });
@@ -117,8 +115,8 @@ router.get("/story/:id", async (req, res) => {
 
   try {
     const story = await UserStory.findById(id)
-     .populate("author", "name avatar")
-     .exec();
+      .populate("author", "name avatar")
+      .exec();
     if (!story) {
       return res.status(404).json({ error: "Story not found." });
     }
@@ -139,8 +137,8 @@ router.get("/story/author/:author", async (req, res) => {
 
   try {
     const stories = await UserStory.find({ author, status: "active" })
-     .populate("author", "name avatar")
-     .exec();
+      .populate("author", "name avatar")
+      .exec();
     res.json({ stories });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch stories." });
