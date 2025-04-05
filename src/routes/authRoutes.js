@@ -8,8 +8,6 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   const { firstName, lastName, password, phone, username } = req.body;
 
-  console.log("Received data:", req.body); // Добавьте это, чтобы проверить полученные данные
-
   if (!firstName || !lastName || !password || !phone || !username) {
     return res.status(400).json({ error: "All fields are required." });
   }
