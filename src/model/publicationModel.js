@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const publicationModel = mongoose.Schema({
+const publicationSchema = mongoose.Schema({
   images: [
     {
       type: String,
@@ -10,10 +10,12 @@ const publicationModel = mongoose.Schema({
   description: {
     type: String,
     required: false,
+    trim: true,
   },
   location: {
     type: String,
     required: false,
+    trim: true,
   },
   createdDate: {
     type: Date,
@@ -21,9 +23,9 @@ const publicationModel = mongoose.Schema({
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "998user",
+    ref: "998user", // Assumes your User model is named "998user"
     required: true,
   },
 });
 
-module.exports = mongoose.model("998publication", publicationModel);
+module.exports = mongoose.model("publication998", publicationSchema);

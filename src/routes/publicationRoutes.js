@@ -1,22 +1,68 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const router = express.Router();
+const Publication = require("../model/publicationModel");
+const Like = require("../model/likeModel"); // Assumes this exists
+const Comment = require("../model/commentModel"); // Assumes this exists
+const Save = require("../model/saveModel"); // Assumes this exists
+const Share = require("../model/shareModel"); // Assumes this exists
+const View = require("../model/viewsModel"); // Assumes this exists
+const multer = require("multer");
+const path = require("path");
 
-// Import Mongoose Models
-const Publication = require("../models/publicationModel");
-const Like = require("../models/likeModel");
-const Comment = require("../models/commentModel");
-const Save = require("../models/saveModel");
-const Share = require("../models/shareModel");
-const View = require("../models/viewModel");
+// Multer configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
 
-// ✅ View all publications (following or all if no following)
+const fileFilter = (req, file, cb) => {
+  if (!file.mimetype.startsWith("image/")) {
+    return cb(new Error("Only image files are allowed"), false);
+  }
+  cb(null, true);
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
+
+// Create a new publication
+router.post("/", upload.array("images", 5), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: "No image uploaded" });
+    }
+
+    const { description, location, author } = req.body;
+    const imagePaths = req.files.map((file) => file.path);
+
+    const newPublication = new Publication({
+      images: imagePaths,
+      description,
+      location,
+      author,
+    });
+
+    await newPublication.save();
+    res.status(201).json({ success: true, publication: newPublication });
+  } catch (error) {
+    console.error("Error creating publication:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// View all publications (following or all if no following)
 router.get("/", async (req, res) => {
   try {
-    const user = req.user; // Assume user data is stored in req.user
-
+    const user = req.user; // Assumes user is attached via middleware
     let publications;
-    if (user.following.length > 0) {
+    if (user && user.following.length > 0) {
       publications = await Publication.find({ author: { $in: user.following } })
         .populate("author", "username")
         .sort({ createdDate: -1 });
@@ -25,29 +71,27 @@ router.get("/", async (req, res) => {
         .populate("author", "username")
         .sort({ createdDate: -1 });
     }
-
     res.status(200).json({ success: true, publications });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// ✅ View a single publication by ID
+// View a single publication by ID
 router.get("/:id", async (req, res) => {
   try {
     const publication = await Publication.findById(req.params.id).populate("author", "username");
-    if (!publication) return res.status(404).json({ success: false, message: "Publication not found" });
-
-    // Add a view to this publication
-    await View.create({ publication: req.params.id, user: req.user.id });
-
+    if (!publication) {
+      return res.status(404).json({ success: false, message: "Publication not found" });
+    }
+    await View.create({ publication: req.params.id, user: req.user?.id });
     res.status(200).json({ success: true, publication });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// ✅ Delete a publication by ID
+// Delete a publication by ID
 router.delete("/:id", async (req, res) => {
   try {
     await Publication.findByIdAndDelete(req.params.id);
@@ -57,7 +101,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// ✅ Edit a publication by ID
+// Edit a publication by ID
 router.put("/:id", async (req, res) => {
   try {
     const updatedPublication = await Publication.findByIdAndUpdate(
@@ -71,22 +115,22 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ✅ Like a publication by ID
+// Like a publication by ID
 router.post("/:id/like", async (req, res) => {
   try {
-    const like = await Like.create({ publication: req.params.id, user: req.user.id });
+    const like = await Like.create({ publication: req.params.id, user: req.user?.id });
     res.status(200).json({ success: true, like });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// ✅ Comment on a publication by ID
+// Comment on a publication by ID
 router.post("/:id/comment", async (req, res) => {
   try {
     const comment = await Comment.create({
       publication: req.params.id,
-      user: req.user.id,
+      user: req.user?.id,
       text: req.body.text,
     });
     res.status(200).json({ success: true, comment });
@@ -95,22 +139,22 @@ router.post("/:id/comment", async (req, res) => {
   }
 });
 
-// ✅ Save a publication by ID
+// Save a publication by ID
 router.post("/:id/save", async (req, res) => {
   try {
-    const save = await Save.create({ publication: req.params.id, user: req.user.id });
+    const save = await Save.create({ publication: req.params.id, user: req.user?.id });
     res.status(200).json({ success: true, save });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// ✅ Share a publication by ID
+// Share a publication by ID
 router.post("/:id/share", async (req, res) => {
   try {
     const share = await Share.create({
       publication: req.params.id,
-      user: req.user.id,
+      user: req.user?.id,
       sharedTo: req.body.sharedTo,
     });
     res.status(200).json({ success: true, share });
