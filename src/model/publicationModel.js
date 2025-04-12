@@ -23,7 +23,7 @@ const publicationSchema = mongoose.Schema({
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "998user", // Assumes your User model is named "998user"
+    ref: "998User", // Assumes your User model is named "998user"
     required: true,
   },
 });
