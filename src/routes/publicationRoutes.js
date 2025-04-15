@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const Publication = require("../model/publicationModel");
-const Like = require("../model/likeModel"); // Assumes this exists
-const Comment = require("../model/commentModel"); // Assumes this exists
-const Save = require("../model/saveModel"); // Assumes this exists
-const Share = require("../model/shareModel"); // Assumes this exists
-const View = require("../model/viewsModel"); // Assumes this exists
+const Like = require("../model/likeModel"); 
+const Comment = require("../model/commentModel"); 
+const Save = require("../model/saveModel"); 
+const Share = require("../model/shareModel"); 
+const View = require("../model/viewsModel"); 
+const Delate = require("../model/delateModel"); 
 const multer = require("multer");
 const path = require("path");
+
 
 // Multer configuration
 const storage = multer.diskStorage({
@@ -160,6 +162,35 @@ router.post("/:id/share", async (req, res) => {
     res.status(200).json({ success: true, share });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete("/:id/post", async (req, res) => {
+  try {
+    const publicationId = req.params.id;
+    const userId = req.user?.id;
+
+    const publication = await Publication.findById(publicationId);
+    if (!publication) {
+      return res.status(404).json({ success: false, message: "Post topilmadi" });
+    }
+
+    if (publication.author.toString() !== userId) {
+      return res.status(403).json({ success: false, message: "Siz faqat o‘zingizning postlaringizni o‘chira olasiz" });
+    }
+
+    await Like.deleteMany({ publication: publicationId });
+    await Comment.deleteMany({ publication: publicationId });
+    await View.deleteMany({ publication: publicationId });
+    await Save.deleteMany({ publication: publicationId });
+    await Share.deleteMany({ publication: publicationId });
+
+    await Publication.findByIdAndDelete(publicationId);
+
+    res.status(200).json({ success: true, message: "Post muvaffaqiyatli o‘chirildi" });
+  } catch (err) {
+    console.error("Delate error:", err);
+    res.status(500).json({ success: false, message: "Serverda xatolik yuz berdi" });
   }
 });
 
