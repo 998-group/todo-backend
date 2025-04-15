@@ -58,7 +58,7 @@ router.post("/", upload.array("images", 5), async (req, res) => {
 });
 
 // View all publications (following or all if no following)
-router.get("/", async (req, res) => {
+router.get("/all", async (req, res) => {
   try {
     const user = req.user; // Assumes user is attached via middleware
     let publications;
@@ -66,12 +66,22 @@ router.get("/", async (req, res) => {
       publications = await Publication.find({ author: { $in: user.following } })
         .populate("author", "username")
         .sort({ createdDate: -1 });
-    } else {
-      publications = await Publication.find()
-        .populate("author", "username")
-        .sort({ createdDate: -1 });
-    }
-    res.status(200).json({ success: true, publications });
+
+        } else {
+          publications = await Publication.find()
+          .populate("author", "username")
+          .sort({ createdDate: -1 });
+          }
+            const publicationsWithLikes = await Promise.all(
+              publications.map(async (pub) => {
+                const likes = await Like.countDocuments({publication: pub._id});
+                return{
+                  ...pub.toObject(),
+                  likes
+                }
+              })
+            )
+    res.status(200).json({ success: true, publications:publicationsWithLikes });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -92,7 +102,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Delete a publication by ID
-router.delete("/:id", async (req, res) => {
+router.delete("/:id/delete", async (req, res) => {
   try {
     await Publication.findByIdAndDelete(req.params.id);
     res.status(200).json({ success: true, message: "Publication deleted" });
@@ -102,7 +112,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 // Edit a publication by ID
-router.put("/:id", async (req, res) => {
+router.put("/:id/edit", async (req, res) => {
   try {
     const updatedPublication = await Publication.findByIdAndUpdate(
       req.params.id,
@@ -118,9 +128,31 @@ router.put("/:id", async (req, res) => {
 // Like a publication by ID
 router.post("/:id/like", async (req, res) => {
   try {
-    const like = await Like.create({ publication: req.params.id, user: req.user?.id });
-    res.status(200).json({ success: true, like });
+    const userId = req.user?.id || req.body.userId;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const publication = await Publication.findById(req.params.id);
+    if (!publication) {
+      return res.status(404).json({ error: "Publication not found" });
+    }
+
+    // Like mavjudligini tekshirish
+    const existingLike = await Like.findOne({ publication: req.params.id, user: userId });
+
+    if (existingLike) {
+      // Like bor — o‘chiramiz
+      await Like.findByIdAndDelete(existingLike._id);
+      return res.status(200).json({ success: true, liked: false, message: "Like removed" });
+    } else {
+      // Like yo‘q — qo‘shamiz
+      const newLike = await Like.create({ publication: req.params.id, user: userId });
+      return res.status(200).json({ success: true, liked: true, like: newLike, message: "Like added" });
+    }
+
   } catch (err) {
+    console.error("Error in like route:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
