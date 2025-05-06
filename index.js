@@ -32,7 +32,7 @@ io.on("connection", (socket) => {
     if (!user || !user._id) return;
 
     // Проверка — если уже есть такой пользователь, не добавлять повторно
-    const alreadyOnline = online.find((u) => u.userId === user._id);
+    const alreadyOnline = online.find((u) => u.user._id === user._id);
     if (!alreadyOnline) {
       online.push({
         user: user,
