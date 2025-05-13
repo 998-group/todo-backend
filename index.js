@@ -24,6 +24,7 @@ const io = new Server(server, {
 });
 
 let online = [];
+//qwer
 
 io.on("connection", (socket) => {
   console.log("USER: ", socket.id);
