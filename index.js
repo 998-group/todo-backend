@@ -24,7 +24,6 @@ const io = new Server(server, {
 });
 
 let online = [];
-//qwer
 
 io.on("connection", (socket) => {
   console.log("USER: ", socket.id);
@@ -43,6 +42,13 @@ io.on("connection", (socket) => {
     }
 
     io.emit("online-users", online);
+
+    socket.on("message", async (data) => {
+      console.log("Message: ", data);
+      socket.broadcast.emit("message", data);
+      // const message = await Message.create(data);
+      // io.emit("message", message);
+    })
   });
 
    socket.on("disconnect", () => {
