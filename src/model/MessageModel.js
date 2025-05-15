@@ -1,14 +1,15 @@
-// backend/model/MessageModel.js
 const mongoose = require("mongoose");
 
 const messageSchema = new mongoose.Schema(
   {
-    senderId: {
-      type: String, // or mongoose.Schema.Types.ObjectId if using MongoDB ObjectIds
+    from: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
-    receiverId: {
-      type: String, // or mongoose.Schema.Types.ObjectId
+    to: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     text: {

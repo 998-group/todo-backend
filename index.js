@@ -1,4 +1,3 @@
-// backend/server.js
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./src/config/db");
@@ -7,72 +6,63 @@ const { Server } = require("socket.io");
 const Message = require("./src/model/MessageModel");
 const bodyParser = require("body-parser");
 
-const authRoutes = require("./src/routes/authRoutes");
-const storyRoutes = require("./src/routes/storyRoutes");
-const publicationRoutes = require("./src/routes/publicationRoutes");
-const messagesRoutes = require("./src/routes/MessageRoute"); // New route
-
 const app = express();
 const server = http.createServer(app);
 const PORT = 5000;
 
+connectDB();
+
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+
 const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST", "DELETE", "PUT"],
+    methods: ["GET", "POST"],
   },
 });
 
 let online = [];
 
 io.on("connection", (socket) => {
-  console.log("USER: ", socket.id);
+  console.log("User connected:", socket.id);
 
   socket.on("connected", (user) => {
     if (!user || !user._id) return;
 
-    // Проверка — если уже есть такой пользователь, не добавлять повторно
-    const alreadyOnline = online.find((u) => u.user._id === user._id);
-    if (!alreadyOnline) {
-      online.push({
-        user: user,
-        socketId: socket.id,
-        status: "online",
-      });
+    const exists = online.find((u) => u.user._id === user._id);
+    if (!exists) {
+      online.push({ user, socketId: socket.id, status: "online" });
     }
 
     io.emit("online-users", online);
-
-    socket.on("message", async (data) => {
-      console.log("Message: ", data);
-      socket.broadcast.emit("message", data);
-      // const message = await Message.create(data);
-      // io.emit("message", message);
-    })
   });
 
-   socket.on("disconnect", () => {
-    console.log("USER disconnected: ", socket.id);
-    online = online.filter(u => u.socketId !== socket.id);
+  socket.on("message", async (data) => {
+    const { from, to, text } = data;
+
+    const saved = await Message.create({
+      from: from._id,
+      to: to._id,
+      text,
+    });
+
+    const receiver = online.find((u) => u.user._id === to._id);
+    const sender = online.find((u) => u.user._id === from._id);
+
+    if (receiver) io.to(receiver.socketId).emit("message", saved);
+    if (sender) io.to(sender.socketId).emit("message", saved);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Disconnected:", socket.id);
+    online = online.filter((u) => u.socketId !== socket.id);
     io.emit("online-users", online);
   });
 });
 
-app.use(express.json());
-app.use(cors());
-
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
-
-app.use("/api/v1/", authRoutes);
-app.use("/api/v1/", storyRoutes);
-app.use("/api/v1/publications", publicationRoutes);
-app.use("/api/v1/", messagesRoutes); // Add messages route
-
-app.use("/uploads", express.static("uploads"));
-
-connectDB();
-
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
