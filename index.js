@@ -5,6 +5,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const Message = require("./src/model/MessageModel");
 const bodyParser = require("body-parser");
+const userModel = require("./src/model/userModel");
 
 const app = express();
 const server = http.createServer(app);
@@ -48,17 +49,40 @@ io.on("connection", (socket) => {
   socket.on("message", async (data) => {
     const { from, to, text } = data;
 
+    // Сохраняем сообщение
     const saved = await Message.create({
       from: from._id,
       to: to._id,
       text,
     });
 
+    // Загружаем данные отправителя и получателя
+    const senderUser = await userModel
+      .findOne({ _id: from._id })
+      .select("_id username"); // Выберите нужные поля
+    const receiverUser = await userModel
+      .findOne({ _id: to._id })
+      .select("_id username");
+
+    // Находим сокеты отправителя и получателя
     const receiver = online.find((u) => u.user._id === to._id);
     const sender = online.find((u) => u.user._id === from._id);
 
-    if (receiver) io.to(receiver.socketId).emit("message", saved);
-    if (sender) io.to(sender.socketId).emit("message", saved);
+    // Отправляем сообщение получателю (с данными отправителя)
+    if (receiver) {
+      io.to(receiver.socketId).emit("message", {
+        user: senderUser, // Отправляем данные отправителя
+        saved,
+      });
+    }
+
+    // Отправляем сообщение отправителю (с данными получателя)
+    if (sender) {
+      io.to(sender.socketId).emit("message", {
+        user: receiverUser, // Отправляем данные получателя
+        saved,
+      });
+    }
   });
 
   socket.on("disconnect", () => {
