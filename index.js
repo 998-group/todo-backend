@@ -17,6 +17,11 @@ app.use(express.json());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
+app.use("/api/v1/auth", require("./src/routes/authRoutes"));
+app.use("/api/v1/publications", require("./src/routes/publicationRoutes"));
+app.use("/api/v1/stories", require("./src/routes/storyRoutes"));
+app.use("/api/v1/messages", require("./src/routes/messageRoute"));
+
 const io = new Server(server, {
   cors: {
     origin: "*",
