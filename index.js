@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 app.use("/api/v1/auth", require("./src/routes/authRoutes"));
 app.use("/api/v1/publications", require("./src/routes/publicationRoutes"));
 app.use("/api/v1/stories", require("./src/routes/storyRoutes"));
-app.use("/api/v1/messages", require("./src/routes/messageRoute"));
+app.use("/api/v1/messages", require("./src/routes/MessageRoute"));
 
 const io = new Server(server, {
   cors: {
